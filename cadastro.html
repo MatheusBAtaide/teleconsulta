@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cadastro-HELP</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.4/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- jQuery e máscara -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+</head>
+
+<body class="d-flex justify-content-center align-items-center min-vh-100 bg-light">
+
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <form id="registrationForm" class="row g-3 p-4 border rounded shadow bg-white needs-validation" novalidate>
+          <h2 class="text-center">Cadastro do paciente</h2>
+
+          <div class="col-12">
+            <label for="inputName" class="form-label">Nome completo</label>
+            <input type="text" class="form-control" id="inputName" name="name" placeholder="Seu nome completo" required>
+            <div class="invalid-feedback">Por favor, insira seu nome completo.</div>
+          </div>
+
+          <!-- CPF e Telefone -->
+          <div class="col-md-6">
+            <label for="inputCPF" class="form-label">CPF</label>
+            <input type="text" class="form-control" id="inputCPF" name="cpf" placeholder="000.000.000-00" required>
+            <div class="invalid-feedback">Insira um CPF válido.</div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="inputTelefone" class="form-label">Telefone</label>
+            <input type="text" class="form-control" id="inputTelefone" name="phone" placeholder="(00) 00000-0000" required>
+            <div class="invalid-feedback">Insira um telefone válido.</div>
+          </div>
+
+          <!-- Email -->
+          <div class="col-12">
+            <label for="inputEmail" class="form-label">Email</label>
+            <input type="email" class="form-control" id="inputEmail" name="email" required>
+            <div class="invalid-feedback">Por favor, insira um e-mail válido.</div>
+          </div>
+
+          <!-- Senha -->
+          <div class="col-12">
+            <label for="inputPassword" class="form-label">Senha</label>
+            <div class="input-group">
+              <input type="password" class="form-control" id="inputPassword" name="password" minlength="6" required>
+              <button class="btn btn-outline-secondary" type="button" id="togglePassword">👁️</button>
+            </div>
+            <div class="invalid-feedback">A senha deve ter pelo menos 6 caracteres.</div>
+          </div>
+
+          <!-- Termos -->
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="gridCheck" required>
+              <label class="form-check-label" for="gridCheck">
+                Aceito os termos de uso
+              </label>
+              <div class="invalid-feedback">Você precisa aceitar os termos.</div>
+            </div>
+          </div>
+
+          <div id="alertMessage" class="col-12" style="display: none;">
+          </div>
+
+          <!-- Botão -->
+          <div class="col-12 text-center">
+            <button type="submit" class="btn btn-primary w-100">Cadastrar</button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    $(document).ready(function () {
+      $('#inputCPF').mask('000.000.000-00');
+      $('#inputTelefone').mask('(00) 00000-0000');
+    });
+
+    document.querySelector('#togglePassword').addEventListener('click', function () {
+      const input = document.querySelector('#inputPassword');
+      const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+      input.setAttribute('type', type);
+      this.textContent = type === 'password' ? '👁️' : '🙈';
+    });
+
+    // Form submission
+    document.getElementById('registrationForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      if (!this.checkValidity()) {
+        e.stopPropagation();
+        this.classList.add('was-validated');
+        return;
+      }
+
+      const formData = {
+        name: document.getElementById('inputName').value,
+        cpf: document.getElementById('inputCPF').value,
+        phone: document.getElementById('inputTelefone').value,
+        email: document.getElementById('inputEmail').value,
+        password: document.getElementById('inputPassword').value
+      };
+
+      try {
+        const response = await fetch('/api/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+        const alertDiv = document.getElementById('alertMessage');
+        
+        if (response.ok) {
+          alertDiv.className = 'alert alert-success';
+          alertDiv.textContent = 'Cadastro realizado com sucesso!';
+          // Redirect to login page after 2 seconds
+          setTimeout(() => {
+            window.location.href = '/login';
+          }, 2000);
+        } else {
+          alertDiv.className = 'alert alert-danger';
+          alertDiv.textContent = data.error || 'Erro ao realizar cadastro';
+        }
+        
+        alertDiv.style.display = 'block';
+      } catch (error) {
+        console.error('Error:', error);
+        const alertDiv = document.getElementById('alertMessage');
+        alertDiv.className = 'alert alert-danger';
+        alertDiv.textContent = 'Erro ao conectar com o servidor';
+        alertDiv.style.display = 'block';
+      }
+    });
+  </script>
+  
+</body>
+</html>
